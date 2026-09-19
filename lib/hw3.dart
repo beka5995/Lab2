@@ -1,3 +1,29 @@
+class Book {
+  String title;
+  String author;
+  double price;
+  bool isBorrowed;
+
+  Book(this.title, this.author, this.price, {this.isBorrowed = false});
+
+  @override
+  String toString() => "'$title' by $author";
+}
+
+class Library {
+  final List<Book> _books = [];
+
+  void addBook(Book book) => _books.add(book);
+
+  List<Book> getAvailableBooks() {
+    return _books.where((book) => !book.isBorrowed).toList();
+  }
+
+  double getTotalValue() {
+    return _books.fold(0.0, (sum, book) => sum + book.price);
+  }
+}
+
 abstract class MediaItem {
   String id;
   String title;
@@ -21,7 +47,8 @@ class Audiobook extends MediaItem with Downloadable {
   Audiobook(super.id, super.title, super.price, this.durationHours, this.narrator);
 
   @override
-  String getDetails() => 'Audiobook: $title ($durationHours h), Narrator: $narrator - \$${price}';
+  String getDetails() =>
+      'Audiobook: $title ($durationHours h), Narrator: $narrator - \$$price';
 }
 
 class EBook extends MediaItem with Downloadable {
@@ -31,7 +58,8 @@ class EBook extends MediaItem with Downloadable {
   EBook(super.id, super.title, super.price, this.fileSizeMB, this.author);
 
   @override
-  String getDetails() => 'EBook: $title ($fileSizeMB MB), Author: $author - \$${price}';
+  String getDetails() =>
+      'EBook: $title ($fileSizeMB MB), Author: $author - \$$price';
 }
 
 class ShoppingCart {
@@ -56,11 +84,21 @@ class ShoppingCart {
         (item as Downloadable).download(item.title);
       }
     }
-    print('Total (with 12% tax): \$${calculateTotalWithTax()}');
+    print('Total (with 12% tax): \$${calculateTotalWithTax().toStringAsFixed(2)}');
   }
 }
 
 void main() {
+  var library = Library();
+
+  library.addBook(Book('Dart Basics', 'John Doe', 15.50));
+  library.addBook(
+      Book('Advanced Flutter', 'Jane Smith', 25.00, isBorrowed: true));
+  library.addBook(Book('Clean Architecture', 'Uncle Bob', 30.00));
+
+  print('Available books: ${library.getAvailableBooks()}');
+  print('Total collection value: \$${library.getTotalValue()}\n');
+
   var cart = ShoppingCart();
 
   cart.addItem(EBook('1', 'Flutter UI', 15.0, 5.2, 'Alice'));
@@ -68,7 +106,7 @@ void main() {
 
   cart.printReceipt();
 
-  print('\n Items under \$18');
+  print('\nItems under \$18:');
   for (var item in cart.filterByMaxPrice(18.0)) {
     print(item.title);
   }
